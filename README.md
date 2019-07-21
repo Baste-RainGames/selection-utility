@@ -10,3 +10,6 @@ This tool has no dependencies other than the Unity editor itself and becomes ava
 
 ## Usage
 Right-click over GameObjects in the SceneView to show a dropdown of all objects that can be selected. The list is sorted by depth from front to back and displays icons for each component on a selectable GameObject. Left-click an item in the list to select it.
+
+## Thanks
+This tool was insprired by [Matias Mansilla (@MatiM36)](https://twitter.com/MatiM36/status/1132014379417964544) after he was featured on the [Unity Blog Community Component June 22, 2019](https://blogs.unity3d.com/2019/06/22/community-component-audio-design-pixel-games-custom-tools-and-best-of-made-with-unity-on-youtube/).
