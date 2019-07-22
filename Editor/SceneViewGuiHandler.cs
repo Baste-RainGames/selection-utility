@@ -96,11 +96,11 @@ namespace Nementic.SelectionUtility
 
         private static void OnMouseUp(Event current)
         {
-            long elapsedTime = ResetTimer();
+            long elapsedMilliseconds = ResetTimer();
 
             // Only show the selection menu if the click was short,
             // not if the user is holding to drag the SceneView camera.
-            if (clickTimer.ElapsedMilliseconds < 300)
+            if (elapsedMilliseconds < 300)
             {
                 GUIUtility.hotControl = 0;
                 current.Use();
