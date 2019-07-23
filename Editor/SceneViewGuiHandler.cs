@@ -25,11 +25,19 @@ namespace Nementic.SelectionUtility
 
         public static void SetEnabled(bool enabled)
         {
+#if UNITY_2019_1_OR_NEWER
             SceneView.beforeSceneGui -= OnSceneGUI;
+#else
+            SceneView.onSceneGUIDelegate -= OnSceneGUI;
+#endif
 
             if (enabled)
             {
+#if UNITY_2019_1_OR_NEWER
                 SceneView.beforeSceneGui += OnSceneGUI;
+#else
+                SceneView.onSceneGUIDelegate += OnSceneGUI;
+#endif
 
                 // Lazy-initialize members to avoid allocating memory
                 // if the tool has been disabled in user preferences.
