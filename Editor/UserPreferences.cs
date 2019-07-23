@@ -29,12 +29,18 @@ namespace Nementic.SelectionUtility
         [SettingsProvider]
         public static SettingsProvider CreateSettings()
         {
+            GUIContent enabledLabel = new GUIContent("Enabled",
+                "Checked if the tool should be available when clicking in the SceneView.");
+
+            GUIContent timoutLabel = new GUIContent("Click Timeout",
+                "The duration in milliseconds after which a held mouse button will not trigger the context popup.");
+
             return new SettingsProvider("Nementic/Selection Utility", SettingsScope.User)
             {
                 guiHandler = (searchContext) =>
                 {
-                    Enabled.DrawProperty("Enabled", SceneViewGuiHandler.SetEnabled);
-                    ClickTimeout.DrawProperty("Click Timeout");
+                    Enabled.DrawProperty(enabledLabel, SceneViewGuiHandler.SetEnabled);
+                    ClickTimeout.DrawProperty(timoutLabel);
                 },
                 keywords = new HashSet<string>(new[] { "Nementic", "Selection", "Utility" })
             };
@@ -78,7 +84,7 @@ namespace Nementic.SelectionUtility
                 return pref.Value;
             }
 
-            public void DrawProperty(string label, Action<T> onChanged = null)
+            public void DrawProperty(GUIContent label, Action<T> onChanged = null)
             {
                 EditorGUI.BeginChangeCheck();
                 T newValue = DrawProperty(label, Value);
@@ -89,7 +95,7 @@ namespace Nementic.SelectionUtility
                 }
             }
 
-            protected abstract T DrawProperty(string label, T value);
+            protected abstract T DrawProperty(GUIContent label, T value);
 
             protected abstract T ReadValue();
             protected abstract void WriteValue(T value);
@@ -101,7 +107,7 @@ namespace Nementic.SelectionUtility
             {
             }
 
-            protected override bool DrawProperty(string label, bool value)
+            protected override bool DrawProperty(GUIContent label, bool value)
             {
                 return EditorGUILayout.Toggle(label, value);
             }
@@ -125,16 +131,16 @@ namespace Nementic.SelectionUtility
                 this.maxValue = maxValue;
             }
 
-            protected override int DrawProperty(string label, int value)
+            protected override int DrawProperty(GUIContent label, int value)
             {
                 value = EditorGUILayout.IntField(label, value);
                 return Mathf.Clamp(value, minValue, maxValue);
             }
 
-            public override int Value 
-            { 
-                get => base.Value; 
-                set => base.Value = Mathf.Clamp(value, minValue, maxValue); 
+            public override int Value
+            {
+                get => base.Value;
+                set => base.Value = Mathf.Clamp(value, minValue, maxValue);
             }
 
             protected override int ReadValue() => EditorPrefs.GetInt(key, defaultValue);
