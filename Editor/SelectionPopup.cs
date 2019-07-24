@@ -229,7 +229,15 @@ namespace Nementic.SelectionUtility
             if (current.type == EventType.MouseDown &&
                 originalRect.Contains(current.mousePosition))
             {
-                Selection.activeGameObject = target;
+                if (current.shift || current.control)
+                {
+                    ToggleSelectedObjectAdditive(target);
+                }
+                else
+                {
+                    ToggleSelectedObject(target);
+                }
+
                 if (base.editorWindow)
                     base.editorWindow.Close();
                 GUIUtility.ExitGUI();
@@ -248,6 +256,26 @@ namespace Nementic.SelectionUtility
                 EditorGUI.LabelField(componentIconRect, styles.TempContent(null, icons[i]));
                 componentIconRect.x = componentIconRect.xMax;
             }
+        }
+
+        private void ToggleSelectedObject(UnityEngine.Object selectedObject)
+        {
+            if (Selection.activeObject == selectedObject)
+                Selection.activeObject = null;
+            else
+                Selection.activeObject = selectedObject;
+        }
+
+        private void ToggleSelectedObjectAdditive(UnityEngine.Object selectedObject)
+        {
+            var selectedObjects = Selection.objects;
+
+            if (selectedObjects.Contains(selectedObject))
+                ArrayUtility.Remove(ref selectedObjects, selectedObject);
+            else
+                ArrayUtility.Add(ref selectedObjects, selectedObject);
+
+            Selection.objects = selectedObjects;
         }
 
         private float RowHeight()
