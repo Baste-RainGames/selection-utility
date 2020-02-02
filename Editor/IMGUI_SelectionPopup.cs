@@ -12,11 +12,11 @@ namespace Nementic.SelectionUtility
     using UnityEngine;
 
     /// <summary>
-    ///     The popup window which displays all selectable GameObjects.
+    ///     The IMGUI version of the popup which displays all selectable GameObjects.
     /// </summary>
-    internal sealed class SelectionPopup : PopupWindowContent
+    internal sealed class IMGUI_SelectionPopup : UnityEditor.PopupWindowContent
     {
-        public SelectionPopup(List<GameObject> options)
+        public IMGUI_SelectionPopup(List<GameObject> options)
         {
             this.options = options;
         }

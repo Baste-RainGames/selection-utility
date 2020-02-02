@@ -124,6 +124,18 @@ namespace Nementic.SelectionUtility
             }
         }
 
+        private static void ShowSelectableGameObjectsPopup(Rect rect, List<GameObject> options)
+        {
+#if UNITY_2019_3_OR_NEWER
+            var popup = EditorWindow.CreateInstance<UIE_PopupWindow>();
+            var content = new UIE_SelectionPopup(options);
+            popup.Show(rect, content);
+#else
+            var content = new IMGUI_SelectionPopup(options);
+            UnityEditor.PopupWindow.Show(rect, content);
+#endif
+        }
+
         /// <summary>
         ///     Resets the timer and returns the elapsed time of the last run.
         /// </summary>
@@ -164,12 +176,6 @@ namespace Nementic.SelectionUtility
                 gameObjectBuffer.Add(go);
             }
             return gameObjectBuffer;
-        }
-
-        private static void ShowSelectableGameObjectsPopup(Rect rect, List<GameObject> options)
-        {
-            var content = new SelectionPopup(options);
-            PopupWindow.Show(rect, content);
         }
     }
 }

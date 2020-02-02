@@ -1,0 +1,34 @@
+ToolbarSearchField {
+    width: auto;
+	flex-grow: 1;
+}
+
+ListView {
+	flex-grow: 1;
+}
+
+Label {
+	padding-left: 2px;
+}
+
+#RowTemplate {
+	flex-direction: row;
+	padding-left: 4px;
+	padding-top: 2px;
+}
+
+#ComponentIconContainer {
+	flex-direction: row;
+}
+
+.separator {
+	position: absolute;
+	background-color: #222;
+	height: 1px;
+	width: 102%;
+	bottom: 0;
+}
+
+.prefab-label {
+	color: rgb(130, 178, 249);
+}

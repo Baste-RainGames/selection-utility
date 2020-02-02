@@ -26,3 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.0.3] - 2019-07-24
 ### Added
 - Support holding down the shift and control keys to add to or remove from the selection.
+
+## [1.1.0] - 2020-02-02
+### Added
+- Use UIElements for Unity version 2019.3 going forward.
+- Toolbar search field at the top of the popup when using the UIElements version.
