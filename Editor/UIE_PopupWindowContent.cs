@@ -22,16 +22,17 @@ namespace Nementic.SelectionUtility
     [Serializable]
     internal sealed class UIE_PopupWindowContent
     {
+        private ListView list;
         private List<GameObject> options;
+        private int rowHeight => 21;
+
         private float buttonWidth;
         private float buttonAndIconsWidth;
-        private HashSet<Texture2D> displayedIcons = new HashSet<Texture2D>();
-        private List<Component> components = new List<Component>(8);
 
         /// <summary>
         ///     These types are not displayed as component icons in the popup window.
         /// </summary>
-        private static HashSet<Type> ignoredIconTypes = new HashSet<Type>()
+        private static readonly HashSet<Type> ignoredIconTypes = new HashSet<Type>()
         {
             typeof(Transform),
             typeof(MeshFilter)
@@ -39,14 +40,35 @@ namespace Nementic.SelectionUtility
 
         private Dictionary<GameObject, Texture2D[]> iconLookup = new Dictionary<GameObject, Texture2D[]>(64);
 
-        private float rowHeight => 21;
-
-        private List<GameObject> filteredOptions;
-        private ListView list;
-
         public UIE_PopupWindowContent(List<GameObject> options)
         {
             this.options = options;
+        }
+
+        public void Build(VisualElement root)
+        {
+            PrecalculateRequiredSizes();
+
+            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.nementic.selection-utility/Editor/UIE_SelectionPopup.uss");
+            root.styleSheets.Add(styleSheet);
+
+            var toolbar = new Toolbar();
+            var searchField = new ToolbarSearchField();
+            toolbar.Add(searchField);
+            root.Add(toolbar);
+
+            list = new ListView();
+            list.itemHeight = rowHeight;
+            list.makeItem = MakeItem;
+            list.bindItem = BindItem;
+
+            list.onSelectionChanged += OnItemChosen;
+            list.selectionType = SelectionType.Multiple;
+
+            searchField.RegisterCallback<ChangeEvent<string>>(OnSearchChanged);
+            RefreshListWithFilter(searchField.value);
+
+            root.Add(list);
         }
 
         private void PrecalculateRequiredSizes()
@@ -77,11 +99,11 @@ namespace Nementic.SelectionUtility
                 if (options[i] == null)
                     continue;
 
-                options[i].GetComponents<Component>(components);
+                var components = options[i].GetComponents<Component>();
 
-                displayedIcons.Clear();
+                var displayedIcons = new HashSet<Texture2D>();
 
-                for (int j = 0; j < components.Count; j++)
+                for (int j = 0; j < components.Length; j++)
                 {
                     var type = components[j].GetType();
 
@@ -128,94 +150,73 @@ namespace Nementic.SelectionUtility
             return size;
         }
 
-        public void Build(VisualElement root)
+        private void OnSearchChanged(ChangeEvent<string> evt)
         {
-            PrecalculateRequiredSizes();
+            // To polish the search experience:
+            // - Ignore multiple spaces in a row by collapsing them down to a single one.
+            // - Remove white space at the start and end of the search string.
+            // - Ignore letter case.
+            string value = Regex.Replace(evt.newValue.Trim(), @"[ ]+", " ");
+            RefreshListWithFilter(value);
+        }
 
-            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.nementic.selection-utility/Editor/UIE_SelectionPopup.uss");
-            root.styleSheets.Add(styleSheet);
+        private void RefreshListWithFilter(string searchString)
+        {
+            var filteredOptions = options.Where(x => x.name.IndexOf(searchString, StringComparison.InvariantCultureIgnoreCase) >= 0).ToList();
+            list.itemsSource = filteredOptions;
+            list.Refresh();
+        }
 
-            var toolbar = new Toolbar();
-            var searchField = new ToolbarSearchField();
-            toolbar.Add(searchField);
-            root.Add(toolbar);
+        private VisualElement MakeItem()
+        {
+            var row = new VisualElement() { name = "RowTemplate" };
+            var icon = new VisualElement() { name = "Icon" };
+            var label = new Label();
+            var container = new VisualElement() { name = "ComponentIconContainer" };
+            var separator = new VisualElement();
+            separator.AddToClassList("separator");
 
-            searchField.RegisterCallback<ChangeEvent<string>>(evt =>
+            row.Add(icon);
+            row.Add(icon);
+            row.Add(label);
+            row.Add(container);
+            row.Add(separator);
+
+            return row;
+        }
+
+        private void BindItem(VisualElement ve, int index)
+        {
+            GameObject target = (GameObject)list.itemsSource[index];
+
+            var label = ve.Q<Label>();
+            label.text = target != null ? target.name : "Null";
+            label.style.width = buttonWidth;
+
+            if (PrefabUtility.IsPartOfAnyPrefab(target))
+                label.AddToClassList("prefab-label");
+            else
+                label.RemoveFromClassList("prefab-label");
+
+            var iconImage = AssetPreview.GetMiniThumbnail(target);
+            var iconElement = ve.Q("Icon");
+            iconElement.style.backgroundImage = iconImage;
+            iconElement.style.height = iconElement.style.width = 16;
+
+            var container = ve.Q("ComponentIconContainer");
+            container.Clear();
+
+            if (iconLookup.ContainsKey(target))
             {
-                // To polish the search experience:
-                // - Ignore multiple spaces in a row by collapsing them down to a single one.
-                // - Remove white space at the start and end of the search string.
-                // - Ignore letter case.
-                string value = Regex.Replace(evt.newValue.Trim(), @"[ ]+", " ");
-                filteredOptions = options.Where(x => x.name.IndexOf(value, StringComparison.InvariantCultureIgnoreCase) >= 0).ToList();
-                list.itemsSource = filteredOptions;
-                list.Refresh();
-
-                //var field = typeof(SceneView).GetField("m_SearchFilter", BindingFlags.NonPublic | BindingFlags.Instance);
-                //field.SetValue(SceneView.lastActiveSceneView, value);
-            });
-
-            filteredOptions = options.ToList();
-
-            list = new ListView(filteredOptions, 21, MakeItem, BindItem);
-
-            VisualElement MakeItem()
-            {
-                var row = new VisualElement() { name = "RowTemplate" };
-                var icon = new VisualElement() { name = "Icon" };
-                var label = new Label();
-                var container = new VisualElement() { name = "ComponentIconContainer" };
-                var separator = new VisualElement();
-                separator.AddToClassList("separator");
-
-                row.Add(icon);
-                row.Add(icon);
-                row.Add(label);
-                row.Add(container);
-                row.Add(separator);
-
-                return row;
-            }
-
-            void BindItem(VisualElement ve, int index)
-            {
-                GameObject target = filteredOptions[index];
-
-                var label = ve.Q<Label>();
-                label.text = target != null ? target.name : "Null";
-                label.style.width = buttonWidth;
-
-                if (PrefabUtility.IsPartOfAnyPrefab(target))
-                    label.AddToClassList("prefab-label");
-                else
-                    label.RemoveFromClassList("prefab-label");
-
-                var iconImage = AssetPreview.GetMiniThumbnail(target);
-                var iconElement = ve.Q("Icon");
-                iconElement.style.backgroundImage = iconImage;
-                iconElement.style.height = iconElement.style.width = 16;
-
-                var container = ve.Q("ComponentIconContainer");
-                container.Clear();
-
-                if (iconLookup.ContainsKey(target))
+                Texture2D[] icons = iconLookup[target];
+                for (int i = 0; i < icons.Length; i++)
                 {
-                    Texture2D[] icons = iconLookup[target];
-                    for (int i = 0; i < icons.Length; i++)
-                    {
-                        var componentIcon = new VisualElement();
-                        componentIcon.style.backgroundImage = icons[i];
-                        componentIcon.style.width = componentIcon.style.height = 16;
-                        container.Add(componentIcon);
-                    }
+                    var componentIcon = new VisualElement();
+                    componentIcon.style.backgroundImage = icons[i];
+                    componentIcon.style.width = componentIcon.style.height = 16;
+                    container.Add(componentIcon);
                 }
             }
-
-            list.onSelectionChanged += OnItemChosen;
-            list.selectionType = SelectionType.Multiple;
-
-            list.Refresh();
-            root.Add(list);
         }
 
         private void OnItemChosen(List<object> obj)
