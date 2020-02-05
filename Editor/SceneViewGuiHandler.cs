@@ -7,7 +7,6 @@ namespace Nementic.SelectionUtility
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using UnityEditor;
     using UnityEngine;
     using Stopwatch = System.Diagnostics.Stopwatch;
@@ -115,7 +114,7 @@ namespace Nementic.SelectionUtility
 
                 var gameObjects = GameObjectsUnderMouse(current.mousePosition);
 
-                if (gameObjects.Count() > 0)
+                if (gameObjects.Count > 0)
                 {
                     Rect activatorRect = new Rect(current.mousePosition, Vector2.zero);
                     ShowSelectableGameObjectsPopup(activatorRect, gameObjects);
