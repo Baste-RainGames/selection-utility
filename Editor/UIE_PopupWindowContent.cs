@@ -47,8 +47,6 @@ namespace Nementic.SelectionUtility
 
         public void Build(VisualElement root)
         {
-            PrecalculateRequiredSizes();
-
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.nementic.selection-utility/Editor/UIE_SelectionPopup.uss");
             root.styleSheets.Add(styleSheet);
 
@@ -132,6 +130,8 @@ namespace Nementic.SelectionUtility
 
         public Vector2 GetWindowSize()
         {
+            PrecalculateRequiredSizes();
+
             int rows = 2 + options.Count;
             float height = rowHeight * options.Count;
             height += EditorGUIUtility.standardVerticalSpacing;

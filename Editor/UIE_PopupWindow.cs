@@ -27,10 +27,12 @@ namespace Nementic.SelectionUtility
             base.wantsMouseMove = true;
 
             this.content = content;
+
+            Vector2 size = content.GetWindowSize();
             content.Build(rootVisualElement);
 
             activatorRect = GUIUtility.GUIToScreenRect(activatorRect);
-            base.ShowAsDropDown(activatorRect, content.GetWindowSize());
+            base.ShowAsDropDown(activatorRect, size);
         }
 
         private void OnEnable()
