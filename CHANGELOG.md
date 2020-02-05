@@ -34,5 +34,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [1.1.1] - 2020-02-05
 ### Fixed
-- Project not compiling when added to the packages folder of a project in 2018.4 or earlier
+- Project not compiling when added to the packages folder of a project in 2018.4 or earlier.
 - Disabled the utility when the editor is compiling, as that causes glitchy behaviour.
+
+## [1.1.2] - 2020-02-05
+### Fixed
+- Handle domain reload by serializing popup state.
+- Revert fix from v1.1.1 that blocks the utility while recompiling, since this is now supported.
