@@ -127,7 +127,7 @@ namespace Nementic.SelectionUtility
         {
 #if UNITY_2019_3_OR_NEWER
             var popup = EditorWindow.CreateInstance<UIE_PopupWindow>();
-            var content = new UIE_SelectionPopup(options);
+            var content = new UIE_PopupWindowContent(options);
             popup.Show(rect, content);
 #else
             var content = new IMGUI_SelectionPopup(options);

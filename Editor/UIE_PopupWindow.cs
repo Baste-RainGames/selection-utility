@@ -9,7 +9,6 @@ namespace Nementic.SelectionUtility
 {
     using UnityEditor;
     using UnityEngine;
-    using UnityEngine.UIElements;
 
     /// <summary>
     /// A popup-styled editor window which can be shown by providing
@@ -20,39 +19,30 @@ namespace Nementic.SelectionUtility
     /// </summary>
     internal class UIE_PopupWindow : EditorWindow
     {
+        private UIE_PopupWindowContent content;
+
         public void Show(Rect activatorRect, UIE_PopupWindowContent content)
         {
             base.hideFlags = HideFlags.DontSave;
             base.wantsMouseMove = true;
 
-            content.BuildContent(rootVisualElement);
+            this.content = content;
+            content.Build(rootVisualElement);
 
             activatorRect = GUIUtility.GUIToScreenRect(activatorRect);
             base.ShowAsDropDown(activatorRect, content.GetWindowSize());
         }
 
+        private void OnEnable()
+        {
+            // Rebuild the content after domain reload.
+            if (content != null)
+                content.Build(rootVisualElement);
+        }
+
         private void OnLostFocus()
         {
             base.Close();
-        }
-    }
-
-    internal abstract class UIE_PopupWindowContent
-    {
-        /// <summary>
-        /// Called before the popup window will be shown.
-        /// </summary>
-        public virtual void BuildContent(VisualElement root)
-        {
-        }
-
-        /// <summary>
-        /// Queried after <see cref="BuildContent(VisualElement)"/>
-        /// and just before the window will be shown.
-        /// </summary>
-        public virtual Vector2 GetWindowSize()
-        {
-            return new Vector2(200, 400);
         }
     }
 }

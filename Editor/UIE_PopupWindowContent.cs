@@ -19,9 +19,10 @@ namespace Nementic.SelectionUtility
     /// <summary>
     ///     The UIElements version of the popup which displays all selectable GameObjects.
     /// </summary>
-    internal sealed class UIE_SelectionPopup : UIE_PopupWindowContent
+    [Serializable]
+    internal sealed class UIE_PopupWindowContent
     {
-        private readonly List<GameObject> options;
+        private List<GameObject> options;
         private float buttonWidth;
         private float buttonAndIconsWidth;
         private HashSet<Texture2D> displayedIcons = new HashSet<Texture2D>();
@@ -43,7 +44,7 @@ namespace Nementic.SelectionUtility
         private List<GameObject> filteredOptions;
         private ListView list;
 
-        public UIE_SelectionPopup(List<GameObject> options)
+        public UIE_PopupWindowContent(List<GameObject> options)
         {
             this.options = options;
         }
@@ -107,7 +108,7 @@ namespace Nementic.SelectionUtility
             this.buttonAndIconsWidth = buttonWidth + iconWidth + EditorGUIUtility.standardVerticalSpacing;
         }
 
-        public override Vector2 GetWindowSize()
+        public Vector2 GetWindowSize()
         {
             int rows = 2 + options.Count;
             float height = rowHeight * options.Count;
@@ -127,7 +128,7 @@ namespace Nementic.SelectionUtility
             return size;
         }
 
-        public override void BuildContent(VisualElement root)
+        public void Build(VisualElement root)
         {
             PrecalculateRequiredSizes();
 
