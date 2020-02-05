@@ -38,7 +38,7 @@ namespace Nementic.SelectionUtility
             typeof(MeshFilter)
         };
 
-        private Dictionary<GameObject, Texture2D[]> iconLookup = new Dictionary<GameObject, Texture2D[]>(64);
+        private Dictionary<GameObject, HashSet<Texture2D>> iconCache;
 
         public UIE_PopupWindowContent(List<GameObject> options)
         {
@@ -55,18 +55,20 @@ namespace Nementic.SelectionUtility
             toolbar.Add(searchField);
             root.Add(toolbar);
 
-            list = new ListView();
-            list.itemHeight = rowHeight;
-            list.makeItem = MakeItem;
-            list.bindItem = BindItem;
-
+            list = new ListView
+            {
+                itemHeight = rowHeight,
+                makeItem = MakeItem,
+                bindItem = BindItem
+            };
             list.onSelectionChanged += OnItemChosen;
             list.selectionType = SelectionType.Multiple;
+            root.Add(list);
 
             searchField.RegisterCallback<ChangeEvent<string>>(OnSearchChanged);
             RefreshListWithFilter(searchField.value);
 
-            root.Add(list);
+            BuildIconCache();
         }
 
         private void PrecalculateRequiredSizes()
@@ -90,7 +92,29 @@ namespace Nementic.SelectionUtility
             // After button, add small space.
             buttonWidth += EditorGUIUtility.standardVerticalSpacing;
 
+            BuildIconCache();
             float iconWidth = 0;
+
+            for (int i = 0; i < options.Count; i++)
+            {
+                if (options[i] == null)
+                    continue;
+
+                float iconWidthTmp = (18 * iconCache[options[i]].Count);
+
+                if (iconWidthTmp > iconWidth)
+                    iconWidth = iconWidthTmp;
+            }
+
+            this.buttonAndIconsWidth = buttonWidth + iconWidth + EditorGUIUtility.standardVerticalSpacing;
+        }
+
+        private void BuildIconCache()
+        {
+            if (iconCache != null)
+                return;
+
+            iconCache = new Dictionary<GameObject, HashSet<Texture2D>>(32);
 
             for (int i = 0; i < options.Count; i++)
             {
@@ -117,15 +141,8 @@ namespace Nementic.SelectionUtility
                     displayedIcons.Add(componentIcon);
                 }
 
-                iconLookup.Add(options[i], displayedIcons.ToArray());
-
-                float iconWidth2 = (18 * displayedIcons.Count);
-
-                if (iconWidth2 > iconWidth)
-                    iconWidth = iconWidth2;
+                iconCache.Add(options[i], displayedIcons);
             }
-
-            this.buttonAndIconsWidth = buttonWidth + iconWidth + EditorGUIUtility.standardVerticalSpacing;
         }
 
         public Vector2 GetWindowSize()
@@ -206,13 +223,12 @@ namespace Nementic.SelectionUtility
             var container = ve.Q("ComponentIconContainer");
             container.Clear();
 
-            if (iconLookup.ContainsKey(target))
+            if (iconCache.ContainsKey(target))
             {
-                Texture2D[] icons = iconLookup[target];
-                for (int i = 0; i < icons.Length; i++)
+                foreach (var icon in iconCache[target])
                 {
                     var componentIcon = new VisualElement();
-                    componentIcon.style.backgroundImage = icons[i];
+                    componentIcon.style.backgroundImage = icon;
                     componentIcon.style.width = componentIcon.style.height = 16;
                     container.Add(componentIcon);
                 }
