@@ -107,7 +107,7 @@ namespace Nementic.SelectionUtility
 
             // Only show the selection menu if the click was short,
             // not if the user is holding to drag the SceneView camera.
-            if (elapsedMilliseconds < UserPreferences.ClickTimeout && !EditorApplication.isCompiling)
+            if (elapsedMilliseconds < UserPreferences.ClickTimeout)
             {
                 GUIUtility.hotControl = 0;
                 current.Use();
