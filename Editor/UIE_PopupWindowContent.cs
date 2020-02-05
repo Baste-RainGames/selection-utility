@@ -26,16 +26,14 @@ namespace Nementic.SelectionUtility
         private List<GameObject> options;
         private int rowHeight => 21;
 
-        // Because view data persistence is not implemented for the ToolbarSearchField
-        // this member is serialized with the class instance.
+        /// Because view data persistence is not implemented for the ToolbarSearchField
+        /// this member is serialized with the class instance.
         private string searchString;
 
-        private float buttonWidth;
-        private float buttonAndIconsWidth;
+        private float labelWidth;
+        private float rowWidth;
 
-        /// <summary>
-        ///     These types are not displayed as component icons in the popup window.
-        /// </summary>
+        /// These types are not displayed as component icons in the popup window as they would clutter the view.
         private static readonly HashSet<Type> ignoredIconTypes = new HashSet<Type>()
         {
             typeof(Transform),
@@ -51,7 +49,8 @@ namespace Nementic.SelectionUtility
 
         public void Build(VisualElement root)
         {
-            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.nementic.selection-utility/Editor/UIE_SelectionPopup.uss");
+            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
+                "Packages/com.nementic.selection-utility/Editor/UIE_SelectionPopup.uss");
             root.styleSheets.Add(styleSheet);
 
             var toolbar = new Toolbar();
@@ -68,7 +67,7 @@ namespace Nementic.SelectionUtility
                 makeItem = MakeItem,
                 bindItem = BindItem
             };
-            list.onSelectionChanged += OnItemChosen;
+            list.onSelectionChanged += OnListSelectionChanged;
             list.selectionType = SelectionType.Multiple;
             list.viewDataKey = "ListViewDataKey";
             root.Add(list);
@@ -78,9 +77,31 @@ namespace Nementic.SelectionUtility
             RefreshListWithFilter(searchField.value);
         }
 
-        private void PrecalculateRequiredSizes()
+        public Vector2 GetWindowSize()
         {
-            buttonWidth = 0;
+            CalculateLabelAndRowWidths();
+
+            int rows = 2 + options.Count;
+            float height = rowHeight * options.Count;
+            height += EditorGUIUtility.standardVerticalSpacing;
+            height += 21; // Toolbar height.
+
+            float preIconWidth = 22f;
+            var size = new Vector2(preIconWidth + rowWidth, height - 2);
+
+            int maxHeight = Mathf.Min(Screen.currentResolution.height, 800);
+            if (height > maxHeight)
+            {
+                size.y = maxHeight;
+                size.x += 14; // Extra size to fit vertical scroll bar without clipping icons.
+            }
+
+            return size;
+        }
+
+        private void CalculateLabelAndRowWidths()
+        {
+            labelWidth = 0;
 
             for (int i = 0; i < options.Count; i++)
             {
@@ -92,12 +113,12 @@ namespace Nementic.SelectionUtility
                 if (width > maxWidth)
                     width = maxWidth;
 
-                if (width > buttonWidth)
-                    buttonWidth = width;
+                if (width > labelWidth)
+                    labelWidth = width;
             }
 
             // After button, add small space.
-            buttonWidth += EditorGUIUtility.standardVerticalSpacing;
+            labelWidth += EditorGUIUtility.standardVerticalSpacing;
 
             BuildIconCache();
             float iconWidth = 0;
@@ -113,7 +134,7 @@ namespace Nementic.SelectionUtility
                     iconWidth = iconWidthTmp;
             }
 
-            this.buttonAndIconsWidth = buttonWidth + iconWidth + EditorGUIUtility.standardVerticalSpacing;
+            this.rowWidth = labelWidth + iconWidth + EditorGUIUtility.standardVerticalSpacing;
         }
 
         private void BuildIconCache()
@@ -152,28 +173,6 @@ namespace Nementic.SelectionUtility
             }
         }
 
-        public Vector2 GetWindowSize()
-        {
-            PrecalculateRequiredSizes();
-
-            int rows = 2 + options.Count;
-            float height = rowHeight * options.Count;
-            height += EditorGUIUtility.standardVerticalSpacing;
-            height += 21; // Toolbar height.
-
-            float preIconWidth = 22f;
-            var size = new Vector2(preIconWidth + buttonAndIconsWidth, height - 2);
-
-            int maxHeight = Mathf.Min(Screen.currentResolution.height, 800);
-            if (height > maxHeight)
-            {
-                size.y = maxHeight;
-                size.x += 14; // Extra size to fit vertical scroll without clipping icons.
-            }
-
-            return size;
-        }
-
         private void OnSearchChanged(ChangeEvent<string> evt)
         {
             this.searchString = evt.newValue ?? string.Empty;
@@ -191,7 +190,9 @@ namespace Nementic.SelectionUtility
             if (searchString == null)
                 searchString = string.Empty;
 
-            var filteredOptions = options.Where(x => x.name.IndexOf(searchString, StringComparison.InvariantCultureIgnoreCase) >= 0).ToList();
+            var filteredOptions = options.Where(
+                x => x.name.IndexOf(searchString, StringComparison.InvariantCultureIgnoreCase) >= 0).ToList();
+
             list.itemsSource = filteredOptions;
             list.Refresh();
         }
@@ -214,25 +215,26 @@ namespace Nementic.SelectionUtility
             return row;
         }
 
-        private void BindItem(VisualElement ve, int index)
+        private void BindItem(VisualElement element, int index)
         {
             GameObject target = (GameObject)list.itemsSource[index];
 
-            var label = ve.Q<Label>();
+            var label = element.Q<Label>();
             label.text = target != null ? target.name : "Null";
-            label.style.width = buttonWidth;
+            label.style.width = labelWidth;
 
+            // Indicate prefabs with a blue label.
             if (PrefabUtility.IsPartOfAnyPrefab(target))
                 label.AddToClassList("prefab-label");
             else
                 label.RemoveFromClassList("prefab-label");
 
-            var iconImage = AssetPreview.GetMiniThumbnail(target);
-            var iconElement = ve.Q("Icon");
-            iconElement.style.backgroundImage = iconImage;
+            Texture2D iconTexture = AssetPreview.GetMiniThumbnail(target);
+            var iconElement = element.Q("Icon");
+            iconElement.style.backgroundImage = iconTexture;
             iconElement.style.height = iconElement.style.width = 16;
 
-            var container = ve.Q("ComponentIconContainer");
+            var container = element.Q("ComponentIconContainer");
             container.Clear();
 
             if (iconCache.ContainsKey(target))
@@ -247,13 +249,9 @@ namespace Nementic.SelectionUtility
             }
         }
 
-        private void OnItemChosen(List<object> obj)
+        private void OnListSelectionChanged(List<object> listItems)
         {
-            var unityObjects = new List<UnityEngine.Object>();
-            foreach (var o in obj)
-                unityObjects.Add((UnityEngine.Object)o);
-
-            Selection.objects = unityObjects.ToArray();
+            Selection.objects = listItems.ConvertAll(x => (UnityEngine.Object)x).ToArray();
         }
     }
 }
