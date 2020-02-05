@@ -26,6 +26,10 @@ namespace Nementic.SelectionUtility
         private List<GameObject> options;
         private int rowHeight => 21;
 
+        // Because view data persistence is not implemented for the ToolbarSearchField
+        // this member is serialized with the class instance.
+        private string searchString;
+
         private float buttonWidth;
         private float buttonAndIconsWidth;
 
@@ -52,6 +56,9 @@ namespace Nementic.SelectionUtility
 
             var toolbar = new Toolbar();
             var searchField = new ToolbarSearchField();
+            searchField.viewDataKey = "ToolbarSearchFieldData";
+            searchField.value = searchString;
+            searchField.RegisterCallback<ChangeEvent<string>>(OnSearchChanged);
             toolbar.Add(searchField);
             root.Add(toolbar);
 
@@ -63,12 +70,12 @@ namespace Nementic.SelectionUtility
             };
             list.onSelectionChanged += OnItemChosen;
             list.selectionType = SelectionType.Multiple;
+            list.viewDataKey = "ListViewDataKey";
             root.Add(list);
 
-            searchField.RegisterCallback<ChangeEvent<string>>(OnSearchChanged);
-            RefreshListWithFilter(searchField.value);
-
             BuildIconCache();
+
+            RefreshListWithFilter(searchField.value);
         }
 
         private void PrecalculateRequiredSizes()
@@ -169,16 +176,21 @@ namespace Nementic.SelectionUtility
 
         private void OnSearchChanged(ChangeEvent<string> evt)
         {
+            this.searchString = evt.newValue ?? string.Empty;
+
             // To polish the search experience:
             // - Ignore multiple spaces in a row by collapsing them down to a single one.
             // - Remove white space at the start and end of the search string.
             // - Ignore letter case.
-            string value = Regex.Replace(evt.newValue.Trim(), @"[ ]+", " ");
+            string value = Regex.Replace(searchString.Trim(), @"[ ]+", " ");
             RefreshListWithFilter(value);
         }
 
         private void RefreshListWithFilter(string searchString)
         {
+            if (searchString == null)
+                searchString = string.Empty;
+
             var filteredOptions = options.Where(x => x.name.IndexOf(searchString, StringComparison.InvariantCultureIgnoreCase) >= 0).ToList();
             list.itemsSource = filteredOptions;
             list.Refresh();
