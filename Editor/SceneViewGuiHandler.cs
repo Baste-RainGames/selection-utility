@@ -7,7 +7,6 @@ namespace Nementic.SelectionUtility
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using UnityEditor;
     using UnityEngine;
     using Stopwatch = System.Diagnostics.Stopwatch;
@@ -108,14 +107,14 @@ namespace Nementic.SelectionUtility
 
             // Only show the selection menu if the click was short,
             // not if the user is holding to drag the SceneView camera.
-            if (elapsedMilliseconds < UserPreferences.ClickTimeout)
+            if (elapsedMilliseconds < UserPreferences.ClickTimeout && !EditorApplication.isCompiling)
             {
                 GUIUtility.hotControl = 0;
                 current.Use();
 
                 var gameObjects = GameObjectsUnderMouse(current.mousePosition);
 
-                if (gameObjects.Count() > 0)
+                if (gameObjects.Count > 0)
                 {
                     Rect activatorRect = new Rect(current.mousePosition, Vector2.zero);
                     ShowSelectableGameObjectsPopup(activatorRect, gameObjects);

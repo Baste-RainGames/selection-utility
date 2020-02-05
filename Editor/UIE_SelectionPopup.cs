@@ -3,6 +3,8 @@
 // See the LICENSE file in the package root folder for more information.
 // Author: Chris Yarbrough
 
+#if UNITY_2019_3_OR_NEWER
+
 namespace Nementic.SelectionUtility
 {
     using System;
@@ -225,3 +227,5 @@ namespace Nementic.SelectionUtility
         }
     }
 }
+
+#endif

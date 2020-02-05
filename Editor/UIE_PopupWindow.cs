@@ -3,6 +3,8 @@
 // See the LICENSE file in the package root folder for more information.
 // Author: Chris Yarbrough
 
+#if UNITY_2019_3_OR_NEWER
+
 namespace Nementic.SelectionUtility
 {
     using UnityEditor;
@@ -13,7 +15,7 @@ namespace Nementic.SelectionUtility
     /// A popup-styled editor window which can be shown by providing
     /// an activator rect. This replicates the core functionality of
     /// <see cref="UnityEditor.PopupWindow"/>. Not to be confused with
-    /// the unluckily named <see cref="UnityEngine.UIElements.PopupWindow"/>, which 
+    /// the unluckily named <see cref="UnityEngine.UIElements.PopupWindow"/>, which
     /// only describes an element with similar styling.
     /// </summary>
     internal class UIE_PopupWindow : EditorWindow
@@ -54,3 +56,5 @@ namespace Nementic.SelectionUtility
         }
     }
 }
+
+#endif
