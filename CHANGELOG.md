@@ -31,3 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Use UIElements for Unity version 2019.3 going forward.
 - Toolbar search field at the top of the popup when using the UIElements version.
+
+## [1.1.1] - 2020-02-05
+### Fixed
+- Project not compiling when added to the packages folder of a project in 2018.4 or earlier
+- Disabled the utility when the editor is compiling, as that causes glitchy behaviour.
