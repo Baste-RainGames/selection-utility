@@ -41,3 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Handle domain reload by serializing popup state.
 - Revert fix from v1.1.1 that blocks the utility while recompiling, since this is now supported.
+
+## [1.1.3] - 2020-02-20
+### Fixed
+- Errors when the objects shown in the popup was deleted by scripts or by scene loads in the IMGUI (2018.4) version

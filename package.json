@@ -1,9 +1,9 @@
 {
   "name": "com.nementic.selection-utility",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "displayName": "Selection Utility",
   "description": "Facilitates selecting GameObjects in the SceneView by displaying a context menu with all objects currently under the mouse cursor as a dropdown similar to how layers in common image editing software can be selected.",
-  "unity": "2019.1",
+  "unity": "2018.4",
   "keywords": [
     "Nementic",
     "Selection",
