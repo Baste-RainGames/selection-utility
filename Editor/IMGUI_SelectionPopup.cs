@@ -165,6 +165,16 @@ namespace Nementic.SelectionUtility
 
         public override void OnGUI(Rect rect)
         {
+            for (int i = options.Count - 1; i >= 0; i--)
+                if (options[i] == null)
+                    options.RemoveAt(i);
+
+            if (options.Count == 0)
+            {
+                ClosePopup();
+                return;
+            }
+
             Event current = Event.current;
 
             scroll = GUI.BeginScrollView(rect, scroll, contentRect, GUIStyle.none, GUI.skin.verticalScrollbar);
@@ -191,6 +201,13 @@ namespace Nementic.SelectionUtility
 
             if (current.type == EventType.MouseMove)
                 editorWindow.Repaint();
+        }
+
+        private void ClosePopup()
+        {
+            if (editorWindow)
+                editorWindow.Close();
+            GUIUtility.ExitGUI();
         }
 
         private void DrawSplitter(Rect rect)
@@ -238,9 +255,7 @@ namespace Nementic.SelectionUtility
                     ToggleSelectedObject(target);
                 }
 
-                if (base.editorWindow)
-                    base.editorWindow.Close();
-                GUIUtility.ExitGUI();
+                ClosePopup();
             }
 
             if (target == null)
