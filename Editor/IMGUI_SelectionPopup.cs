@@ -285,7 +285,6 @@ namespace Nementic.SelectionUtility
 
         public override Vector2 GetWindowSize()
         {
-            int rows = 2 + options.Count;
             float height = RowHeight() * options.Count;
             height += EditorGUIUtility.standardVerticalSpacing;
 
